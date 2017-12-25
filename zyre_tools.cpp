@@ -96,25 +96,23 @@ static void receiveLoop(zsock_t *pipe, void *args)
 // tokenize and return as a vector of strings
 std::vector<std::string> getCommand()
 {
-    /*
-    std::string command;
-    std::cout << "$ ";
-    getline(std::cin, command);
-    std::istringstream iss(command);
-    std::vector<std::string> sub_commands{std::istream_iterator<std::string>{iss},
-                                          std::istream_iterator<std::string>{}};
-    return sub_commands;
-    */
+    std::vector<std::string> sub_commands;
     char * input_buffer = readline("$ ");
     if (input_buffer != NULL)
     {
         if (input_buffer[0] != 0)
         {
             add_history(input_buffer);
+
+            std::string command(input_buffer);
+            std::istringstream iss(command);
+            sub_commands = std::vector<std::string>{std::istream_iterator<std::string>{iss},
+                                                    std::istream_iterator<std::string>{}};
+
         }
     }
     free(input_buffer);
-    return std::vector<std::string>();
+    return sub_commands;
 }
 
 // prints a list of nodes on the network (their UUID and name)
