@@ -184,7 +184,15 @@ void printNodeInfo(zyre_t * node, const std::string &uuid)
         std::cout << "\tUUID: " << it->first << std::endl;
         std::cout << "\tName: " << it->second << std::endl;
         char * endpoint = zyre_peer_address(node, uuid.c_str());
-        std::cout << "\tEndpoint: " << endpoint << std::endl;
+
+        if (strlen(endpoint) > 0)
+        {
+            std::cout << "\tEndpoint: " << endpoint << std::endl;
+        }
+        else
+        {
+            std::cout << "\tEndpoint: node does not exist" << std::endl;
+        }
         free(endpoint);
 
         std::vector<std::string> peer_groups = getNodeGroups(node, uuid);
@@ -291,6 +299,7 @@ void help()
     std::cout << "\tgroup info <group name>" << std::endl;
     std::cout << "\tnode listen <uuid>" << std::endl;
     std::cout << "\tgroup listen <group name>" << std::endl;
+    std::cout << "\tstop (stops listening)" << std::endl;
     std::cout << "\thelp" << std::endl;
     std::cout << "\texit" << std::endl;
 }

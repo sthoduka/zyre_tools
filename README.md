@@ -21,8 +21,9 @@ node list
 group list
 node info <uuid>
 group info <group name>
-node listen <uuid>
-group listen <group name>
+node listen <uuid> (listens to all shouts from this node)
+group listen <group name> (listens to all shouts in this group)
+stop (stops listening to shouts)
 help
 exit
 ```
