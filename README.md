@@ -15,15 +15,20 @@ make
 ```
 ./zyre_tools
 ```
+
 Available commands are as follows:
 ```
-node list
-group list
-node info <uuid>
-group info <group name>
-node listen <uuid> (listens to all shouts from this node)
-group listen <group name> (listens to all shouts in this group)
-stop (stops listening to shouts)
+node list                    : lists all peers
+node info <uuid>             : gets info on a peer
+node listen <uuid>           : listen to shouts and whispers by a peer
+group list                   : lists all groups
+group info <group name>      : gets info on a group
+group listen <group name>    : listens to shouts on a group
+group join <group name>      : joins a group
+group leave <group name>     : leaves a group
+stop                         : stops printing whispers and shouts
+shout <group name> <message> : shouts a message to a group
+whisper <uuid> <message>     : whispers a message to a peer
 help
 exit
 ```
