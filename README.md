@@ -18,17 +18,17 @@ make
 
 Available commands are as follows:
 ```
-node list                    : lists all peers
-node info <uuid>             : gets info on a peer
-node listen <uuid>           : listen to shouts and whispers by a peer
-group list                   : lists all groups
-group info <group name>      : gets info on a group
-group listen <group name>    : listens to shouts on a group
-group join <group name>      : joins a group
-group leave <group name>     : leaves a group
-stop                         : stops printing whispers and shouts
-shout <group name> <message> : shouts a message to a group
-whisper <uuid> <message>     : whispers a message to a peer
+nl                       : list all peers
+n <uuid>                 : get info on a peer
+necho <uuid>             : echo shouts and whispers by a peer
+gl                       : list all groups
+gi <group name>          : get info on a group
+gecho <group name>       : echo shouts on a group
+join <group name>        : join a group
+leave <group name>       : leave a group
+stop                     : stop echoing whispers and shouts
+s <group name> <message> : shout a message to a group
+w <uuid> <message>       : whisper a message to a peer
 help
-exit
+q
 ```

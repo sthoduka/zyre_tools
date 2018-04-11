@@ -6,6 +6,7 @@
 #include <iterator>
 #include <vector>
 #include <map>
+#include <set>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -139,6 +140,7 @@ void printNodeList(zyre_t * node)
         }
         free(peer_uuid);
     }
+    std::cout << "\t" << zyre_uuid(node) << " (" << zyre_name(node) << ") [this node]" << std::endl;
     zlist_destroy(&peers);
 }
 
@@ -237,7 +239,6 @@ void stopPrinting(zyre_t * node, zactor_t * actor)
     {
         char * group_name = (char *)zlist_pop(groups);
         zyre_leave(node, group_name);
-        free(group_name);
     }
     zlist_destroy(&groups);
 
@@ -258,33 +259,71 @@ void printNodeShouts(zyre_t * node, zactor_t * actor, const std::string &uuid)
 // print list of groups
 void printGroupList(zyre_t * node)
 {
+    std::set<std::string> unique_groups;
     zlist_t * groups = zyre_peer_groups(node);
+
     int size = zlist_size(groups);
     for (int i = 0; i < size; i++)
     {
         char * group_name = (char *)zlist_pop(groups);
         std::cout << "\t" << group_name << std::endl;
+        unique_groups.insert(std::string(group_name));
         free(group_name);
     }
     zlist_destroy(&groups);
+
+    zlist_t * self_groups = zyre_own_groups(node);
+    int num_groups = zlist_size(self_groups);
+    for (int i = 0; i < num_groups; i++)
+    {
+        char * self_group = (char*)zlist_pop(self_groups);
+        if (unique_groups.find(std::string(self_group)) == unique_groups.end())
+        {
+            unique_groups.insert(std::string(self_group));
+            std::cout << "\t" << self_group << std::endl;
+        }
+    }
+    zlist_destroy(&self_groups);
 }
 
 // print peers of a group
 void printGroupInfo(zyre_t * node, const std::string &name)
 {
     zlist_t * peers = zyre_peers_by_group(node, name.c_str());
-    if (!peers)
+
+    zlist_t * groups = zyre_own_groups(node);
+    int gsize = zlist_size(groups);
+    int is_self_in_group = 0;
+    for (int i = 0; i < gsize; i++)
+    {
+        char * group_name = (char *)zlist_pop(groups);
+        if (std::string(group_name) == name)
+        {
+            is_self_in_group = 1;
+        }
+    }
+    zlist_destroy(&groups);
+
+    if (!peers && is_self_in_group == 0)
     {
         std::cerr << "No group named " << name << std::endl;
         return;
     }
-    int size = zlist_size(peers);
-    std::cout << "\tGroup " << name  << " has " << size << ((size == 1)?" node":" nodes") << std::endl;
+
+    int size = 0;
+    if (peers)
+        size = zlist_size(peers);
+    int num_nodes = size + is_self_in_group;
+    std::cout << "\tGroup " << name  << " has " << num_nodes << ((num_nodes == 1)?" node":" nodes") << std::endl;
     for (int i = 0; i < size; i++)
     {
         char * peer_name = (char *)zlist_pop(peers);
         std::cout << "\t\t" << peer_name << std::endl;
         free(peer_name);
+    }
+    if (is_self_in_group == 1)
+    {
+        std::cout << "\t\t" << zyre_uuid(node) << " [this node]" << std::endl;
     }
     zlist_destroy(&peers);
 }
@@ -300,19 +339,19 @@ void printGroupShouts(zyre_t * node, zactor_t *actor, const std::string &name)
 void help()
 {
     std::cout << "Available commands: " << std::endl;
-    std::cout << "\tnode list                    : lists all peers" << std::endl;
-    std::cout << "\tnode info <uuid>             : gets info on a peer" << std::endl;
-    std::cout << "\tnode listen <uuid>           : listen to shouts and whispers by a peer" << std::endl;
-    std::cout << "\tgroup list                   : lists all groups" << std::endl;
-    std::cout << "\tgroup info <group name>      : gets info on a group" << std::endl;
-    std::cout << "\tgroup listen <group name>    : listens to shouts on a group" << std::endl;
-    std::cout << "\tgroup join <group name>      : joins a group" << std::endl;
-    std::cout << "\tgroup leave <group name>     : leaves a group" << std::endl;
-    std::cout << "\tstop                         : stops printing whispers and shouts" << std::endl;
-    std::cout << "\tshout <group name> <message> : shouts a message to a group" << std::endl;
-    std::cout << "\twhisper <uuid> <message>     : whispers a message to a peer" << std::endl;
+    std::cout << "\tnl                           : list all peers" << std::endl;
+    std::cout << "\tni <uuid>                    : get info on a peer" << std::endl;
+    std::cout << "\tnecho <uuid>                 : echo shouts and whispers by a peer" << std::endl;
+    std::cout << "\tgl                           : list all groups" << std::endl;
+    std::cout << "\tgi <group name>              : get info on a group" << std::endl;
+    std::cout << "\tgecho <group name>           : echo shouts on a group" << std::endl;
+    std::cout << "\tjoin <group name>            : join a group" << std::endl;
+    std::cout << "\tleave <group name>           : leave a group" << std::endl;
+    std::cout << "\tstop                         : stop printing whispers and shouts" << std::endl;
+    std::cout << "\ts <group name> <message>     : shout a message to a group" << std::endl;
+    std::cout << "\tw <uuid> <message>           : whisper a message to a peer" << std::endl;
+    std::cout << "\tq                            : exits" << std::endl;
     std::cout << "\thelp" << std::endl;
-    std::cout << "\texit" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -347,95 +386,79 @@ int main(int argc, char *argv[])
         {
             stopPrinting(node, actor);
         }
-        else if (cmd[0] == "node")
+        else if (cmd[0] == "nl")
+        {
+            printNodeList(node);
+        }
+        else if (cmd[0] == "ni")
         {
             if (cmd.size() < 2)
             {
-                std::cerr << "error" << std::endl;
+                std::cerr << "Specify a node uuid: ni <node uuid>" << std::endl;
                 continue;
             }
-            if (cmd[1] == "list")
-            {
-                printNodeList(node);
-            }
-            else if (cmd[1] == "info")
-            {
-                if (cmd.size() < 3)
-                {
-                    std::cerr << "error" << std::endl;
-                    continue;
-                }
-                std::string uuid = cmd[2];
-                printNodeInfo(node, uuid);
-            }
-            else if (cmd[1] == "listen")
-            {
-                if (cmd.size() < 3)
-                {
-                    std::cerr << "error" << std::endl;
-                    continue;
-                }
-                std::string uuid = cmd[2];
-                printNodeShouts(node, actor, uuid);
-            }
+            std::string uuid = cmd[1];
+            printNodeInfo(node, uuid);
         }
-        else if (cmd[0] == "group")
+        else if (cmd[0] == "necho")
         {
             if (cmd.size() < 2)
             {
-                std::cerr << "error" << std::endl;
+                std::cerr << "Specify a node uuid: necho <node uuid>" << std::endl;
                 continue;
             }
-            if (cmd[1] == "list")
-            {
-                printGroupList(node);
-            }
-            else if (cmd[1] == "info")
-            {
-                if (cmd.size() < 3)
-                {
-                    std::cerr << "error" << std::endl;
-                    continue;
-                }
-                std::string name = cmd[2];
-                printGroupInfo(node, name);
-            }
-            else if (cmd[1] == "listen")
-            {
-                if (cmd.size() < 3)
-                {
-                    std::cerr << "error" << std::endl;
-                    continue;
-                }
-                std::string name = cmd[2];
-                printGroupShouts(node, actor, name);
-            }
-            else if (cmd[1] == "join")
-            {
-                if (cmd.size() < 3)
-                {
-                    std::cerr << "error" << std::endl;
-                    continue;
-                }
-                std::string group_name = cmd[2];
-                zyre_join(node, group_name.c_str());
-            }
-            else if (cmd[1] == "leave")
-            {
-                if (cmd.size() < 3)
-                {
-                    std::cerr << "error" << std::endl;
-                    continue;
-                }
-                std::string group_name = cmd[2];
-                zyre_leave(node, group_name.c_str());
-            }
+            std::string uuid = cmd[1];
+            printNodeShouts(node, actor, uuid);
         }
-        else if (cmd[0] == "shout")
+        else if (cmd[0] == "gl")
+        {
+            printGroupList(node);
+        }
+        else if (cmd[0] == "gi")
+        {
+            if (cmd.size() < 2)
+            {
+                std::cerr << "Specify a group name: gi <group name>" << std::endl;
+                continue;
+            }
+            std::string name = cmd[1];
+            printGroupInfo(node, name);
+        }
+        else if (cmd[0] == "gecho")
+        {
+            if (cmd.size() < 2)
+            {
+                std::cerr << "Specify a group name: gecho <group name>" << std::endl;
+                continue;
+            }
+            std::string name = cmd[1];
+            printGroupShouts(node, actor, name);
+        }
+        else if (cmd[0] == "join")
+        {
+            if (cmd.size() < 2)
+            {
+                std::cerr << "Specify a group name: join <group name>" << std::endl;
+                continue;
+            }
+            std::string group_name = cmd[1];
+            zyre_join(node, group_name.c_str());
+        }
+        else if (cmd[0] == "leave")
+        {
+            if (cmd.size() < 2)
+            {
+                std::cerr << "Specify a group name: leave <group name>" << std::endl;
+                continue;
+            }
+            std::string group_name = cmd[1];
+            zyre_leave(node, group_name.c_str());
+        }
+        else if (cmd[0] == "s")
         {
             if (cmd.size() < 3)
             {
-                std::cerr << "error" << std::endl;
+                std::cerr << "Specify a group and message: s <group name> <message>" << std::endl;
                 continue;
             }
             else
@@ -445,11 +468,11 @@ int main(int argc, char *argv[])
                 zyre_shouts(node, group.c_str(), "%s", message.c_str());
             }
         }
-        else if (cmd[0] == "whisper")
+        else if (cmd[0] == "w")
         {
             if (cmd.size() < 3)
             {
-                std::cerr << "error" << std::endl;
+                std::cerr << "Specify a node uuid and message: w <node uuid> <message>" << std::endl;
                 continue;
             }
             else
@@ -459,6 +482,10 @@ int main(int argc, char *argv[])
                 zyre_whispers(node, peer.c_str(), "%s", message.c_str());
             }
 
+        }
+        else
+        {
+            std::cerr << "Unknown command. Type 'help' for list of commands" << std::endl;
         }
     }
 
