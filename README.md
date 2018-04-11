@@ -19,7 +19,7 @@ make
 Available commands are as follows:
 ```
 nl                       : list all peers
-ni <uuid>                 : get info on a peer
+ni <uuid>                : get info on a peer
 necho <uuid>             : echo shouts and whispers by a peer
 gl                       : list all groups
 gi <group name>          : get info on a group
