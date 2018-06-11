@@ -29,6 +29,6 @@ leave <group name>       : leave a group
 stop                     : stop echoing whispers and shouts
 s <group name> <message> : shout a message to a group
 w <uuid> <message>       : whisper a message to a peer
-help
-q
+help                     : print list of available commands
+q                        : quit program
 ```
