@@ -4,7 +4,7 @@ zyre_tools allows you to list [Zyre](https://github.com/zeromq/zyre) nodes and g
 #### Dependencies
 [Zyre](https://github.com/zeromq/zyre)
 
-[GNU Readline](http://tiswww.cwru.edu/php/chet/readline/rltop.html)
+[GNU Readline](http://tiswww.cwru.edu/php/chet/readline/rltop.html) (`sudo apt-get install libreadline-dev`)
 
 #### Compile
 ```
