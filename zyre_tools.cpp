@@ -465,6 +465,10 @@ int main(int argc, char *argv[])
             {
                 std::string group = cmd[1];
                 std::string message = cmd[2];
+                for (int i = 3; i < cmd.size(); i++)
+                {
+                    message = message + " " + cmd[i];
+                }
                 zyre_shouts(node, group.c_str(), "%s", message.c_str());
             }
         }
@@ -479,6 +483,10 @@ int main(int argc, char *argv[])
             {
                 std::string peer = cmd[1];
                 std::string message = cmd[2];
+                for (int i = 3; i < cmd.size(); i++)
+                {
+                    message = message + " " + cmd[i];
+                }
                 zyre_whispers(node, peer.c_str(), "%s", message.c_str());
             }
 
