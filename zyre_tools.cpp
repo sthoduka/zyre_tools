@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) Santosh Thoduka, 2018
+ * Licensed under GPLv3
+ */
+
 #include <zyre.h>
 #include <iostream>
 #include <string>
@@ -10,9 +15,14 @@
 
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <csignal>
 
 // keep track of node names (key: uuid, value: name)
 std::map<std::string, std::string> uuid_to_name_map;
+
+zyre_t *node;
+zactor_t *actor;
+
 
 // zactor which polls for messages from the main thread 
 // and events from other nodes
@@ -354,10 +364,22 @@ void help()
     std::cout << "\thelp" << std::endl;
 }
 
+void signal_handler(int signal)
+{
+    zstr_sendx(actor, "$TERM", NULL);
+    zactor_destroy(&actor);
+
+    zyre_stop(node);
+    // wait for node to stop
+    zclock_sleep(100);
+    zyre_destroy(&node);
+    std::cout << std::endl;
+    exit(0);
+}
+
 int main(int argc, char *argv[])
 {
-    rl_clear_signals();
-    zyre_t *node = zyre_new("zyre_tools");
+    node = zyre_new("zyre_tools");
     if (!node)
     {
         return 1;
@@ -366,7 +388,10 @@ int main(int argc, char *argv[])
     zyre_start(node);
     zclock_sleep(250);
 
-    zactor_t *actor = zactor_new(receiveLoop, node);
+    actor = zactor_new(receiveLoop, node);
+
+    std::signal(SIGINT, signal_handler);
+
     while (true && !zsys_interrupted)
     {
         std::vector<std::string> cmd = getCommand();
