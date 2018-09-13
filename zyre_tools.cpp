@@ -92,12 +92,15 @@ static void receiveLoop(zsock_t *pipe, void *args)
                     (node_to_print == std::string(peer) ||
                      group_to_print == std::string(group_or_message)))
             {
-                    std::cout << "[shout:" << group_or_message <<"] " << message << std::endl;
+                    std::cout << "[shout:" << group_or_message <<"]["
+                              << std::string(name) << "]" << std::endl
+                              << message << std::endl;
             }
             else if (streq(event, "WHISPER") &&
                 node_to_print == std::string(peer))
             {
-                std::cout << "[whisper] " <<  group_or_message << std::endl;
+                std::cout << "[whisper][" << std::string(name) << "]" << std::endl
+                          <<  group_or_message << std::endl;
             }
             free(event);
             free (peer);
