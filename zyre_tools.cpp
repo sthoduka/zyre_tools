@@ -149,8 +149,9 @@ void printNodeList(zyre_t * node)
         std::cout << "\t" << peer_uuid;
         if (it != uuid_to_name_map.end())
         {
-            std::cout << " (" << it->second << ")" << std::endl;
+            std::cout << " (" << it->second << ")";
         }
+        std::cout << std::endl;
         free(peer_uuid);
     }
     std::cout << "\t" << zyre_uuid(node) << " (" << zyre_name(node) << ") [this node]" << std::endl;
@@ -331,7 +332,14 @@ void printGroupInfo(zyre_t * node, const std::string &name)
     for (int i = 0; i < size; i++)
     {
         char * peer_name = (char *)zlist_pop(peers);
-        std::cout << "\t\t" << peer_name << std::endl;
+        std::cout << "\t\t" << peer_name;
+        // look for name of peer based on uuid
+        std::map<std::string, std::string>::iterator it = uuid_to_name_map.find(peer_name);
+        if (it != uuid_to_name_map.end())
+        {
+            std::cout << " (" << it->second << ")";
+        }
+        std::cout << std::endl;
         free(peer_name);
     }
     if (is_self_in_group == 1)
@@ -382,7 +390,16 @@ void signal_handler(int signal)
 
 int main(int argc, char *argv[])
 {
-    node = zyre_new("zyre_tools");
+    std::string node_name;
+    if (argc > 1)
+    {
+        node_name = std::string(argv[1]);
+    }
+    else
+    {
+        node_name = "zyre_tools";
+    }
+    node = zyre_new(node_name.c_str());
     if (!node)
     {
         return 1;
