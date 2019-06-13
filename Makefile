@@ -1,6 +1,13 @@
+ifeq ($(PREFIX),)
+    PREFIX := /usr/local
+endif
+
 LIBS=-lzyre -lczmq -lzmq -lreadline
 
-all: zyre_tools
+all: zyrecli
 
-zyre_tools: zyre_tools.cpp
+zyrecli: zyre_tools.cpp
 	g++ -o $@ $^ $(LIBS) -std=c++11
+	
+install: zyrecli
+	install zyrecli $(PREFIX)/bin/
