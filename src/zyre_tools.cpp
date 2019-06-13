@@ -3,19 +3,7 @@
  * Licensed under GPLv3
  */
 
-#include <zyre.h>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <algorithm>
-#include <iterator>
-#include <vector>
-#include <map>
-#include <set>
-
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <csignal>
+#include <zyre_tools.h>
 
 // keep track of node names (key: uuid, value: name)
 std::map<std::string, std::string> uuid_to_name_map;
