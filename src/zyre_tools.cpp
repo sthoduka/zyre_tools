@@ -52,7 +52,8 @@ void help()
     std::cout << "\thelp" << std::endl;
 }
 
-std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
+std::string replaceAll(std::string str, const std::string& from, const std::string& to) 
+{
     size_t start_pos = 0;
     while((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
@@ -124,7 +125,7 @@ int main(int argc, char *argv[])
         else if (cmd[0] == "nl")
         {
             std::string output = getNodeList(node);
-            std::cout << "\t" << replaceAll(output, std::string("\n"), std::string("\n\t")) << std::endl;
+            std::cout << "\t" << replaceAll(output, std::string("\n"), std::string("\n\t")) << std::endl << std::endl;
         }
         else if (cmd[0] == "ni")
         {
@@ -134,7 +135,8 @@ int main(int argc, char *argv[])
                 continue;
             }
             std::string uuid = cmd[1];
-            printNodeInfo(node, uuid);
+            std::string output = getNodeInfo(node, uuid);
+            std::cout << "\t" << replaceAll(output, std::string("\n"), std::string("\n\t")) << std::endl << std::endl;
         }
         else if (cmd[0] == "necho")
         {
@@ -148,7 +150,8 @@ int main(int argc, char *argv[])
         }
         else if (cmd[0] == "gl")
         {
-            printGroupList(node);
+            std::string output = getGroupList(node);
+            std::cout << "\t" << replaceAll(output, std::string("\n"), std::string("\n\t")) << std::endl;
         }
         else if (cmd[0] == "gi")
         {
@@ -158,7 +161,8 @@ int main(int argc, char *argv[])
                 continue;
             }
             std::string name = cmd[1];
-            printGroupInfo(node, name);
+            std::string output = getGroupInfo(node, name);
+            std::cout << "\t" << replaceAll(output, std::string("\n"), std::string("\n\t")) << std::endl;
         }
         else if (cmd[0] == "gecho")
         {

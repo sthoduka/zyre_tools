@@ -17,9 +17,9 @@ std::map<std::string, std::string> getNamesFromUuids(zyre_t * node,
 void receiveLoop(zsock_t *pipe, void *args);
 std::string getNodeList(zyre_t * node);
 std::vector<std::string> getNodeGroups(zyre_t *node, const std::string &uuid);
-void printNodeInfo(zyre_t * node, const std::string &uuid);
+std::string getNodeInfo(zyre_t * node, const std::string &uuid);
 void stopPrinting(zyre_t * node, zactor_t * actor);
 void printNodeShouts(zyre_t * node, zactor_t * actor, const std::string &uuid);
-void printGroupList(zyre_t * node);
-void printGroupInfo(zyre_t * node, const std::string &name);
+std::string getGroupList(zyre_t * node);
+std::string getGroupInfo(zyre_t * node, const std::string &name);
 void printGroupShouts(zyre_t * node, zactor_t *actor, const std::string &name);
