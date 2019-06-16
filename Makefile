@@ -6,22 +6,24 @@ LIBS=-lzyre -lczmq -lzmq -lreadline
 BUILD_DIR=build
 SOURCE_DIR=src
 
-all: zyrecli zyrenode
+all: zyrecli zyrenode zyregroup
 
 zyrenode: $(SOURCE_DIR)/zyrenode.cpp $(BUILD_DIR)/helper_functions.o
 	g++ -o $(BUILD_DIR)/$@ -Iinclude $^ $(LIBS) -std=c++11
 
-zyrecli: $(BUILD_DIR)/zyre_tools.o $(BUILD_DIR)/helper_functions.o
-	g++ -o $(BUILD_DIR)/$@ $^ $(LIBS) -std=c++11
+zyregroup: $(SOURCE_DIR)/zyregroup.cpp $(BUILD_DIR)/helper_functions.o
+	g++ -o $(BUILD_DIR)/$@ -Iinclude $^ $(LIBS) -std=c++11
 
-$(BUILD_DIR)/zyre_tools.o: $(SOURCE_DIR)/zyre_tools.cpp
-	g++ -o $@ -Iinclude -c $^ -std=c++11
-	
+zyrecli: $(SOURCE_DIR)/zyre_tools.cpp $(BUILD_DIR)/helper_functions.o
+	g++ -o $(BUILD_DIR)/$@ -Iinclude $^ $(LIBS) -std=c++11
+
 $(BUILD_DIR)/helper_functions.o: $(SOURCE_DIR)/helper_functions.cpp
 	g++ -o $@ -Iinclude -c $^ -std=c++11
 	
 clean:
 	rm $(BUILD_DIR)/*
 
-install: zyrecli
-	install $(BUILD_DIR)/$^ $(PREFIX)/bin/
+install: zyrecli zyrenode zyregroup
+	install $(BUILD_DIR)/zyrecli $(PREFIX)/bin/
+	install $(BUILD_DIR)/zyrenode $(PREFIX)/bin/
+	install $(BUILD_DIR)/zyregroup $(PREFIX)/bin/
