@@ -7,19 +7,48 @@ zyre_tools allows you to list [Zyre](https://github.com/zeromq/zyre) nodes and g
 - [Zyre](https://github.com/zeromq/zyre)
 - [GNU Readline](http://tiswww.cwru.edu/php/chet/readline/rltop.html) (`sudo apt-get install libreadline-dev`)
 
-### Compile
+### Compile and Install
 ```
 mkdir build
 make
 sudo make install
 ```
 
-### Run
+### `zyrenode` help
 ```
-zyrecli
+usage: zyrenode COMMAND [args]
+
+Command line tool for printing information about zyre nodes
+
+Commands:
+  list                     list all the zyre nodes in the network
+  info NODE_UUID           provide info on a zyre node in the network
+  echo NODE_UUID           print all the messages from a zyre group
+  pub NODE_UUID MESSAGE    whisper message to a zyre group
+  pub NODE_UUID -f FILE    whisper contents of file to a zyre group
+
+optional arguments:
+  -h, --help    show this help message and exit
 ```
 
-### cli commands
+### `zyregroup` help
+```
+usage: zyregroup COMMAND [args]
+
+Command line tool for printing information about zyre groups
+
+Commands:
+  list                 list all the zyre groups in the network
+  info GROUP           provide info on a zyre groups in the network
+  echo GROUP           print all the SHOUT messages from a zyre group
+  pub GROUP MESSAGE    shout message to a zyre group
+  pub GROUP -f FILE    shout contents of file to a zyre group
+
+optional arguments:
+  -h, --help    show this help message and exit
+```
+
+### `zyrecli` commands
 ```
 nl                       : list all peers
 ni <uuid>                : get info on a peer
