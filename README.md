@@ -1,6 +1,14 @@
+# Zyre tools
+
 zyre_tools allows you to list [Zyre](https://github.com/zeromq/zyre) nodes and groups, get info on them and listen to shouts from them.
 
-## Usage
+## Index
+- [Dependencies](#dependencies)
+- [Compile and Install](#compile-and-install)
+- [Usage](#usage)
+  - [zyrenode](#zyrenode)
+  - [zyregroup](#zyregroup)
+  - [zyrecli](#zyrecli)
 
 ### Dependencies
 
@@ -14,7 +22,8 @@ make
 sudo make install
 ```
 
-### `zyrenode` help
+## Usage
+### zyrenode
 ```
 usage: zyrenode COMMAND [args]
 
@@ -31,7 +40,7 @@ optional arguments:
   -h, --help    show this help message and exit
 ```
 
-### `zyregroup` help
+### zyregroup
 ```
 usage: zyregroup COMMAND [args]
 
@@ -48,19 +57,24 @@ optional arguments:
   -h, --help    show this help message and exit
 ```
 
-### `zyrecli` commands
+### zyrecli
 ```
-nl                       : list all peers
-ni <uuid>                : get info on a peer
-necho <uuid>             : echo shouts and whispers by a peer
-gl                       : list all groups
-gi <group name>          : get info on a group
-gecho <group name>       : echo shouts on a group
-join <group name>        : join a group
-leave <group name>       : leave a group
-stop                     : stop echoing whispers and shouts
-s <group name> <message> : shout a message to a group
-w <uuid> <message>       : whisper a message to a peer
-help                     : print list of available commands
-q                        : quit program
+usage: zyrecli [node_name]
+
+Command line interface for complete zyre based operations
+
+Commands:
+  nl                       : list all peers
+  ni <uuid>                : get info on a peer
+  necho <uuid>             : echo shouts and whispers by a peer
+  gl                       : list all groups
+  gi <group name>          : get info on a group
+  gecho <group name>       : echo shouts on a group
+  join <group name>        : join a group
+  leave <group name>       : leave a group
+  stop                     : stop echoing whispers and shouts
+  s <group name> <message> : shout a message to a group
+  w <uuid> <message>       : whisper a message to a peer
+  help                     : print list of available commands
+  q                        : quit program
 ```
