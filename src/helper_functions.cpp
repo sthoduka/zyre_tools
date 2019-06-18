@@ -3,7 +3,7 @@
 // keep track of node names (key: uuid, value: name)
 std::map<std::string, std::string> uuid_to_name_map;
 
-// zactor which polls for messages from the main thread 
+// zactor which polls for messages from the main thread
 // and events from other nodes
 void receiveLoop(zsock_t *pipe, void *args)
 {

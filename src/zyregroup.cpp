@@ -10,18 +10,18 @@ const std::string plain("\033[0m");
 
 void printHelp()
 {
-    const char *help_string = 
+    const char *help_string =
 "\n"
 "usage: zyregroup COMMAND [args]\n"
 "\n"
 "Command line tool for printing information about zyre groups\n"
 "\n"
 "Commands:\n"
-"  list                 list all the zyre groups in the network\n" 
-"  info GROUP           provide info on a zyre groups in the network\n" 
-"  echo GROUP           print all the SHOUT messages from a zyre group\n" 
-"  pub GROUP MESSAGE    shout message to a zyre group\n" 
-"  pub GROUP -f FILE    shout contents of file to a zyre group\n" 
+"  list                 list all the zyre groups in the network\n"
+"  info GROUP           provide info on a zyre groups in the network\n"
+"  echo GROUP           print all the SHOUT messages from a zyre group\n"
+"  pub GROUP MESSAGE    shout message to a zyre group\n"
+"  pub GROUP -f FILE    shout contents of file to a zyre group\n"
 "\n"
 "optional arguments:\n"
 "  -h, --help    show this help message and exit\n"
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 {
     std::string valid_commands[] = {"list", "info", "echo", "pub"};
     bool print_uuid = false;
-    if (argc < 2 || 
+    if (argc < 2 ||
        std::find(std::begin(valid_commands), std::end(valid_commands), argv[1]) == std::end(valid_commands) ||
        streq(argv[1], "-h") || streq(argv[1], "--help"))
     {
