@@ -1,32 +1,11 @@
-/**
- * Copyright (c) Santosh Thoduka, 2018
- * Licensed under GPLv3
- */
-
-#include <zyre.h>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <algorithm>
-#include <iterator>
-#include <vector>
-#include <map>
-#include <set>
-
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <csignal>
+#include <helper_functions.h>
 
 // keep track of node names (key: uuid, value: name)
 std::map<std::string, std::string> uuid_to_name_map;
 
-zyre_t *node;
-zactor_t *actor;
-
-
 // zactor which polls for messages from the main thread 
 // and events from other nodes
-static void receiveLoop(zsock_t *pipe, void *args)
+void receiveLoop(zsock_t *pipe, void *args)
 {
     zyre_t * node = (zyre_t*)(args);
 
@@ -95,9 +74,9 @@ static void receiveLoop(zsock_t *pipe, void *args)
                     std::cout << "[shout:" << group_or_message <<"]["
                               << std::string(name) << "]" << std::endl
                               << message << std::endl;
+                    std::cout << std::endl;
             }
-            else if (streq(event, "WHISPER") &&
-                node_to_print == std::string(peer))
+            else if (streq(event, "WHISPER"))
             {
                 std::cout << "[whisper][" << std::string(name) << "]" << std::endl
                           <<  group_or_message << std::endl;
@@ -113,49 +92,28 @@ static void receiveLoop(zsock_t *pipe, void *args)
     zpoller_destroy (&poller);
 }
 
-// print prompt and get input
-// tokenize and return as a vector of strings
-std::vector<std::string> getCommand()
-{
-    std::vector<std::string> sub_commands;
-    char * input_buffer = readline("$ ");
-    if (input_buffer != NULL)
-    {
-        if (input_buffer[0] != 0)
-        {
-            add_history(input_buffer);
-
-            std::string command(input_buffer);
-            std::istringstream iss(command);
-            sub_commands = std::vector<std::string>{std::istream_iterator<std::string>{iss},
-                                                    std::istream_iterator<std::string>{}};
-
-        }
-    }
-    free(input_buffer);
-    return sub_commands;
-}
-
 // prints a list of nodes on the network (their UUID and name)
-void printNodeList(zyre_t * node)
+std::string getNodeList(zyre_t * node)
 {
     zlist_t * peers = zyre_peers(node);
+    std::stringstream output;
     int size = zlist_size(peers);
     for (int i = 0; i < size; i++)
     {
         char * peer_uuid = (char*)zlist_pop(peers);
         // look for name of peer based on uuid
         std::map<std::string, std::string>::iterator it = uuid_to_name_map.find(peer_uuid);
-        std::cout << "\t" << peer_uuid;
+        output << peer_uuid;
         if (it != uuid_to_name_map.end())
         {
-            std::cout << " (" << it->second << ")";
+            output << " (" << it->second << ")";
         }
-        std::cout << std::endl;
+        output << std::endl;
         free(peer_uuid);
     }
-    std::cout << "\t" << zyre_uuid(node) << " (" << zyre_name(node) << ") [this node]" << std::endl;
+    output << zyre_uuid(node) << " (" << zyre_name(node) << ") [this node]";
     zlist_destroy(&peers);
+    return output.str();
 }
 
 // get list of groups that a node (identified by uuid) belongs to
@@ -199,49 +157,49 @@ std::vector<std::string> getNodeGroups(zyre_t *node, const std::string &uuid)
 }
 
 // prints node uuid, name, endpoint and groups
-void printNodeInfo(zyre_t * node, const std::string &uuid)
+std::string getNodeInfo(zyre_t * node, const std::string &uuid)
 {
+    std::stringstream output;
     std::map<std::string, std::string>::iterator it = uuid_to_name_map.find(uuid);
     if (it != uuid_to_name_map.end())
     {
-        std::cout << "\tUUID: " << it->first << std::endl;
-        std::cout << "\tName: " << it->second << std::endl;
+        output << "UUID: " << it->first << std::endl;
+        output << "Name: " << it->second << std::endl;
         char * endpoint = zyre_peer_address(node, uuid.c_str());
 
         if (strlen(endpoint) > 0)
         {
-            std::cout << "\tEndpoint: " << endpoint << std::endl;
+            output << "Endpoint: " << endpoint << std::endl;
         }
         else
         {
-            std::cout << "\tEndpoint: node does not exist" << std::endl;
+            output << "Endpoint: node does not exist" << std::endl;
         }
         free(endpoint);
 
         std::vector<std::string> peer_groups = getNodeGroups(node, uuid);
         if (peer_groups.empty())
         {
-            std::cout << "\tGroups: None" << std::endl;
+            output << "Groups: None" << std::endl;
         }
         else
         {
-            std::cout << "\tGroups: ";
+            output << "Groups: ";
             for (int i = 0; i < peer_groups.size(); i++)
             {
-                std::cout << peer_groups[i];
+                output << peer_groups[i];
                 if (i != peer_groups.size() - 1)
                 {
-                    std::cout << ", ";
+                    output << ", ";
                 }
             }
-            std::cout << std::endl;
         }
-
     }
     else
     {
-        std::cerr << "Peer " << uuid << " does not exist" << std::endl;
+        std::cerr << "Peer " << uuid << " does not exist";
     }
+    return output.str();
 }
 
 // stop listening to shouts from a node or group
@@ -271,8 +229,9 @@ void printNodeShouts(zyre_t * node, zactor_t * actor, const std::string &uuid)
 }
 
 // print list of groups
-void printGroupList(zyre_t * node)
+std::string getGroupList(zyre_t * node)
 {
+    std::stringstream output;
     std::set<std::string> unique_groups;
     zlist_t * groups = zyre_peer_groups(node);
 
@@ -280,7 +239,7 @@ void printGroupList(zyre_t * node)
     for (int i = 0; i < size; i++)
     {
         char * group_name = (char *)zlist_pop(groups);
-        std::cout << "\t" << group_name << std::endl;
+        output << group_name << std::endl;
         unique_groups.insert(std::string(group_name));
         free(group_name);
     }
@@ -294,15 +253,17 @@ void printGroupList(zyre_t * node)
         if (unique_groups.find(std::string(self_group)) == unique_groups.end())
         {
             unique_groups.insert(std::string(self_group));
-            std::cout << "\t" << self_group << std::endl;
+            output << self_group << std::endl;
         }
     }
     zlist_destroy(&self_groups);
+    return output.str();
 }
 
 // print peers of a group
-void printGroupInfo(zyre_t * node, const std::string &name)
+std::string getGroupInfo(zyre_t * node, const std::string &name)
 {
+    std::stringstream output;
     zlist_t * peers = zyre_peers_by_group(node, name.c_str());
 
     zlist_t * groups = zyre_own_groups(node);
@@ -321,32 +282,33 @@ void printGroupInfo(zyre_t * node, const std::string &name)
     if (!peers && is_self_in_group == 0)
     {
         std::cerr << "No group named " << name << std::endl;
-        return;
+        return output.str();
     }
 
     int size = 0;
     if (peers)
         size = zlist_size(peers);
     int num_nodes = size + is_self_in_group;
-    std::cout << "\tGroup " << name  << " has " << num_nodes << ((num_nodes == 1)?" node":" nodes") << std::endl;
+    output << "Group " << name  << " has " << num_nodes << ((num_nodes == 1)?" node":" nodes") << std::endl;
     for (int i = 0; i < size; i++)
     {
         char * peer_name = (char *)zlist_pop(peers);
-        std::cout << "\t\t" << peer_name;
+        output << "\t" << peer_name;
         // look for name of peer based on uuid
         std::map<std::string, std::string>::iterator it = uuid_to_name_map.find(peer_name);
         if (it != uuid_to_name_map.end())
         {
-            std::cout << " (" << it->second << ")";
+            output << " (" << it->second << ")";
         }
-        std::cout << std::endl;
+        output << std::endl;
         free(peer_name);
     }
     if (is_self_in_group == 1)
     {
-        std::cout << "\t\t" << zyre_uuid(node) << " [this node]" << std::endl;
+        output << "\t" << zyre_uuid(node) << " [this node]" << std::endl;
     }
     zlist_destroy(&peers);
+    return output.str();
 }
 
 // start listening to (and print) shouts to a certain group from any node
@@ -356,198 +318,3 @@ void printGroupShouts(zyre_t * node, zactor_t *actor, const std::string &name)
     zstr_sendx(actor, "PRINT SHOUTS FROM GROUP", name.c_str(), NULL);
 }
 
-// print list of commands available
-void help()
-{
-    std::cout << "Available commands: " << std::endl;
-    std::cout << "\tnl                           : list all peers" << std::endl;
-    std::cout << "\tni <uuid>                    : get info on a peer" << std::endl;
-    std::cout << "\tnecho <uuid>                 : echo shouts and whispers by a peer" << std::endl;
-    std::cout << "\tgl                           : list all groups" << std::endl;
-    std::cout << "\tgi <group name>              : get info on a group" << std::endl;
-    std::cout << "\tgecho <group name>           : echo shouts on a group" << std::endl;
-    std::cout << "\tjoin <group name>            : join a group" << std::endl;
-    std::cout << "\tleave <group name>           : leave a group" << std::endl;
-    std::cout << "\tstop                         : stop printing whispers and shouts" << std::endl;
-    std::cout << "\ts <group name> <message>     : shout a message to a group" << std::endl;
-    std::cout << "\tw <uuid> <message>           : whisper a message to a peer" << std::endl;
-    std::cout << "\tq                            : exits" << std::endl;
-    std::cout << "\thelp" << std::endl;
-}
-
-void signal_handler(int signal)
-{
-    zstr_sendx(actor, "$TERM", NULL);
-    zactor_destroy(&actor);
-
-    zyre_stop(node);
-    // wait for node to stop
-    zclock_sleep(100);
-    zyre_destroy(&node);
-    std::cout << std::endl;
-    exit(0);
-}
-
-int main(int argc, char *argv[])
-{
-    std::string node_name;
-    if (argc > 1)
-    {
-        node_name = std::string(argv[1]);
-    }
-    else
-    {
-        node_name = "zyre_tools";
-    }
-    node = zyre_new(node_name.c_str());
-    if (!node)
-    {
-        return 1;
-    }
-
-    zyre_start(node);
-    zclock_sleep(250);
-
-    actor = zactor_new(receiveLoop, node);
-
-    std::signal(SIGINT, signal_handler);
-
-    while (true && !zsys_interrupted)
-    {
-        std::vector<std::string> cmd = getCommand();
-        if (cmd.empty())
-        {
-            continue;
-        }
-        else if (cmd[0] == "exit" || cmd[0] == "quit" || cmd[0] == "q")
-        {
-            break;
-        }
-        if (cmd[0] == "help")
-        {
-            help();
-        }
-        else if (cmd[0] == "stop")
-        {
-            stopPrinting(node, actor);
-        }
-        else if (cmd[0] == "nl")
-        {
-            printNodeList(node);
-        }
-        else if (cmd[0] == "ni")
-        {
-            if (cmd.size() < 2)
-            {
-                std::cerr << "Specify a node uuid: ni <node uuid>" << std::endl;
-                continue;
-            }
-            std::string uuid = cmd[1];
-            printNodeInfo(node, uuid);
-        }
-        else if (cmd[0] == "necho")
-        {
-            if (cmd.size() < 2)
-            {
-                std::cerr << "Specify a node uuid: necho <node uuid>" << std::endl;
-                continue;
-            }
-            std::string uuid = cmd[1];
-            printNodeShouts(node, actor, uuid);
-        }
-        else if (cmd[0] == "gl")
-        {
-            printGroupList(node);
-        }
-        else if (cmd[0] == "gi")
-        {
-            if (cmd.size() < 2)
-            {
-                std::cerr << "Specify a group name: gi <group name>" << std::endl;
-                continue;
-            }
-            std::string name = cmd[1];
-            printGroupInfo(node, name);
-        }
-        else if (cmd[0] == "gecho")
-        {
-            if (cmd.size() < 2)
-            {
-                std::cerr << "Specify a group name: gecho <group name>" << std::endl;
-                continue;
-            }
-            std::string name = cmd[1];
-            printGroupShouts(node, actor, name);
-        }
-        else if (cmd[0] == "join")
-        {
-            if (cmd.size() < 2)
-            {
-                std::cerr << "Specify a group name: join <group name>" << std::endl;
-                continue;
-            }
-            std::string group_name = cmd[1];
-            zyre_join(node, group_name.c_str());
-        }
-        else if (cmd[0] == "leave")
-        {
-            if (cmd.size() < 2)
-            {
-                std::cerr << "Specify a group name: leave <group name>" << std::endl;
-                continue;
-            }
-            std::string group_name = cmd[1];
-            zyre_leave(node, group_name.c_str());
-        }
-        else if (cmd[0] == "s")
-        {
-            if (cmd.size() < 3)
-            {
-                std::cerr << "Specify a group and message: s <group name> <message>" << std::endl;
-                continue;
-            }
-            else
-            {
-                std::string group = cmd[1];
-                std::string message = cmd[2];
-                for (int i = 3; i < cmd.size(); i++)
-                {
-                    message = message + " " + cmd[i];
-                }
-                zyre_shouts(node, group.c_str(), "%s", message.c_str());
-            }
-        }
-        else if (cmd[0] == "w")
-        {
-            if (cmd.size() < 3)
-            {
-                std::cerr << "Specify a node uuid and message: w <node uuid> <message>" << std::endl;
-                continue;
-            }
-            else
-            {
-                std::string peer = cmd[1];
-                std::string message = cmd[2];
-                for (int i = 3; i < cmd.size(); i++)
-                {
-                    message = message + " " + cmd[i];
-                }
-                zyre_whispers(node, peer.c_str(), "%s", message.c_str());
-            }
-
-        }
-        else
-        {
-            std::cerr << "Unknown command. Type 'help' for list of commands" << std::endl;
-        }
-    }
-
-    zstr_sendx(actor, "$TERM", NULL);
-    zactor_destroy(&actor);
-
-    zyre_stop(node);
-    // wait for node to stop
-    zclock_sleep(100);
-    zyre_destroy(&node);
-    return 0;
-}
