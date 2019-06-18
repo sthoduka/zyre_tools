@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     zyre_start(node);
-    zclock_sleep(250);
+    zclock_sleep(1000);
     /* std::cout << node << std::endl; */
     /* zyre_print(node); */
     actor = zactor_new(receiveLoop, node);
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     std::string command = argv[1];
     if (streq(argv[1], "list"))
     {
-        std::cout << getNodeList(node);
+        std::cout << getNodeList(node) << std::endl;
     }
     else if (streq(argv[1], "info"))
     {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         else
         {
             std::string uuid = argv[2];
-            std::cout << getNodeInfo(node, uuid);
+            std::cout << getNodeInfo(node, uuid) << std::endl;
         }
     }
     else if (streq(argv[1], "echo"))
