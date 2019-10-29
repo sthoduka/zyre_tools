@@ -18,6 +18,7 @@ zyre_tools allows you to list [Zyre](https://github.com/zeromq/zyre) nodes and g
 ### Compile and Install
 ```
 mkdir build
+cd build
 cmake ..
 make
 sudo make install
